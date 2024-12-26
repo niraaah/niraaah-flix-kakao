@@ -227,31 +227,14 @@ input[type="checkbox"] {
 }
 
 .kakao-login-btn {
-  width: 80%;
-  height: 45px;
-  background-color: #FEE500;
+  background: none;
   border: none;
-  border-radius: 6px;
   padding: 0;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   margin: 20px auto;
-  position: relative;
-  font-size: 14px;
-  color: #000000;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
 }
 
 .kakao-login-btn:hover {
-  background-color: #FDD835;
-  opacity: 1;
-}
-
-.kakao-login-btn img {
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
+  opacity: 0.9;
 }
