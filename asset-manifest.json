@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/niraaah-flix-kakao/static/css/main.a0a1e554.css",
-    "main.js": "/niraaah-flix-kakao/static/js/main.3592b642.js",
+    "main.js": "/niraaah-flix-kakao/static/js/main.0ca278bd.js",
     "static/media/terms.md": "/niraaah-flix-kakao/static/media/terms.1826e4419a5255bb21ed.md",
     "index.html": "/niraaah-flix-kakao/index.html",
     "main.a0a1e554.css.map": "/niraaah-flix-kakao/static/css/main.a0a1e554.css.map",
-    "main.3592b642.js.map": "/niraaah-flix-kakao/static/js/main.3592b642.js.map"
+    "main.0ca278bd.js.map": "/niraaah-flix-kakao/static/js/main.0ca278bd.js.map"
   },
   "entrypoints": [
     "static/css/main.a0a1e554.css",
-    "static/js/main.3592b642.js"
+    "static/js/main.0ca278bd.js"
   ]
 }
