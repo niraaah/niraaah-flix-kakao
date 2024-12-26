@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/niraaah-flix-kakao/static/css/main.ac8f4ca7.css",
+    "main.js": "/niraaah-flix-kakao/static/js/main.90ac211a.js",
+    "static/media/terms.md": "/niraaah-flix-kakao/static/media/terms.1826e4419a5255bb21ed.md",
+    "index.html": "/niraaah-flix-kakao/index.html",
+    "main.ac8f4ca7.css.map": "/niraaah-flix-kakao/static/css/main.ac8f4ca7.css.map",
+    "main.90ac211a.js.map": "/niraaah-flix-kakao/static/js/main.90ac211a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ac8f4ca7.css",
+    "static/js/main.90ac211a.js"
+  ]
+}
