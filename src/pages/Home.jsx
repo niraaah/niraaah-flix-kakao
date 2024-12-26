@@ -21,7 +21,7 @@ const Home = () => {
     return loggedInUser?.apiKey || null;
   });
 
-  // 찜 목록 로드 함수
+  // 찜 목��� 로드 함수
   const loadWishlist = () => {
     const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
     setWishlist(storedWishlist);
@@ -38,41 +38,69 @@ const Home = () => {
   }, [apiKey, navigate]);
 
   useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const popularData = await TMDbAPI.getPopularMovies(apiKey);
+        setPopularMovies(popularData.results.slice(0, 10));
+        setBannerMovie(
+          popularData.results[Math.floor(Math.random() * popularData.results.length)]
+        );
+
+        const genreData = await TMDbAPI.getGenres(apiKey);
+        setGenres(genreData.genres);
+        
+        // 처음 5개 장르만 로드
+        const initialGenres = genreData.genres.slice(0, 5);
+        await loadNextGenres(initialGenres);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      }
+    };
+
     if (apiKey) {
-      const fetchInitialData = async () => {
-        try {
-          const popularData = await TMDbAPI.getPopularMovies(apiKey);
-          setPopularMovies(popularData.results.slice(0, 10));
-          setBannerMovie(
-            popularData.results[Math.floor(Math.random() * popularData.results.length)]
-          );
-
-          const genreData = await TMDbAPI.getGenres(apiKey);
-          setGenres(genreData.genres);
-          loadNextGenres(genreData.genres.slice(0, 5));
-        } catch (error) {
-          console.error('Error fetching initial data:', error);
-        }
-      };
-
       fetchInitialData();
     }
   }, [apiKey]);
 
   const loadNextGenres = async (nextGenres) => {
-    setIsLoading(true); // 로딩 상태 활성화
-    const newGenreMovies = [];
-    for (const genre of nextGenres) {
-      try {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    try {
+      const newGenreMovies = [];
+      // 현재 로드된 모든 장르 ID를 Set으로 관리
+      const loadedGenreIds = new Set(genreMovies.map(genre => genre.genreId));
+      
+      // 아직 로드되지 않은 장르만 필터링
+      const uniqueGenres = nextGenres.filter(genre => !loadedGenreIds.has(genre.id));
+      
+      for (const genre of uniqueGenres) {
         const movies = await TMDbAPI.getMoviesByGenre(apiKey, genre.id);
-        newGenreMovies.push({ genreName: genre.name, movies: movies.results.slice(0, 10) });
-      } catch (error) {
-        console.error(`Error loading movies for genre: ${genre.name}`, error);
+        newGenreMovies.push({ 
+          genreName: genre.name, 
+          genreId: genre.id,
+          movies: movies.results.slice(0, 10)
+        });
       }
+      
+      if (newGenreMovies.length > 0) {
+        setGenreMovies(prev => {
+          // 다시 한번 중복 체크
+          const existingIds = new Set(prev.map(g => g.genreId));
+          const uniqueNewGenres = newGenreMovies.filter(g => !existingIds.has(g.genreId));
+          return [...prev, ...uniqueNewGenres];
+        });
+        setLoadedGenres(prev => {
+          const existingIds = new Set(prev.map(g => g.id));
+          const uniqueNewLoadedGenres = uniqueGenres.filter(g => !existingIds.has(g.id));
+          return [...prev, ...uniqueNewLoadedGenres];
+        });
+      }
+    } catch (error) {
+      console.error('Error loading genre movies:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setGenreMovies((prev) => [...prev, ...newGenreMovies]);
-    setLoadedGenres((prev) => [...prev, ...nextGenres]);
-    setIsLoading(false); // 로딩 상태 비활성화
   };
 
   // 무한 스크롤 이벤트 핸들러
@@ -82,12 +110,17 @@ const Home = () => {
       document.documentElement.offsetHeight - 200 &&
       !isLoading
     ) {
-      const remainingGenres = genres.filter(
-        (genre) => !loadedGenres.some((loaded) => loaded.id === genre.id)
-      );
+      // 이미 로드된 모든 장르 ID를 Set으로 관리
+      const loadedIds = new Set([
+        ...genreMovies.map(genre => genre.genreId),
+        ...loadedGenres.map(genre => genre.id)
+      ]);
+      
+      // 아직 로드되지 않은 장르만 필터링
+      const remainingGenres = genres.filter(genre => !loadedIds.has(genre.id));
 
       if (remainingGenres.length > 0) {
-        loadNextGenres(remainingGenres.slice(0, 3)); // 3개의 장르 로드
+        loadNextGenres(remainingGenres.slice(0, 3));
       }
     }
   };
@@ -95,7 +128,7 @@ const Home = () => {
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [genres, loadedGenres, isLoading]);
+  }, [genres, genreMovies, loadedGenres, isLoading]);
 
   const handleMovieClick = (movie) => {
     const fetchWishlist = () => {
@@ -162,23 +195,31 @@ const Home = () => {
           </div>
         </div>
       )}
-      <MovieSlider 
-        title="지금 뜨는 콘텐츠" 
-        movies={popularMovies} 
-        onMovieClick={handleMovieClick} 
-        onWishlistToggle={handleWishlistToggle}
-        wishlist={wishlist} />
-
-      {genreMovies.map(({ genreName, movies }) => (
-        <MovieSlider
-          key={genreName}
-          title={genreName}
-          movies={movies}
+      
+      {/* 인기 영화 슬라이더 */}
+      <div className="slider-section">
+        <h2>지금 뜨는 콘텐츠</h2>
+        <MovieSlider 
+          movies={popularMovies} 
           onMovieClick={handleMovieClick}
-          onWishlistToggle={handleWishlistToggle}
+          handleWishlistToggle={handleWishlistToggle}
           wishlist={wishlist}
         />
+      </div>
+
+      {/* 장르별 영화 슬라이더 */}
+      {genreMovies.map(({ genreName, genreId, movies }, index) => (
+        <div key={`genre-${genreId}-${index}`} className="slider-section">
+          <h2>{genreName}</h2>
+          <MovieSlider
+            movies={movies}
+            onMovieClick={handleMovieClick}
+            handleWishlistToggle={handleWishlistToggle}
+            wishlist={wishlist}
+          />
+        </div>
       ))}
+      
       {isLoading && <p>로딩 중...</p>}
       {isModalOpen && selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />

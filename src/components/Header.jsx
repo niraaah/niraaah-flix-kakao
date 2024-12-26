@@ -10,7 +10,20 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    
+    if (loggedInUser?.provider === 'kakao' && window.Kakao) {
+      try {
+        if (!window.Kakao.isInitialized()) {
+          window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+        }
+        await window.Kakao.Auth.logout();
+      } catch (error) {
+        console.error('Kakao logout error:', error);
+      }
+    }
+
     localStorage.removeItem('loggedInUser');
     localStorage.removeItem('rememberMe');
     setToast({ message: '안녕히 가세요, 또 뵙겠습니다!', type: 'success' });

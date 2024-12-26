@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Popular from './pages/Popular';
 import Search from './pages/Search';
@@ -7,67 +7,59 @@ import Wishlist from './pages/Wishlist';
 import SignIn from './pages/SignIn';
 import MovieDetails from './pages/MovieDetails';
 import Header from './components/Header';
-import PrivateRoute from './components/PrivateRoute';
 import ScrollToTop from './components/ScrollToTop';
+import KakaoRedirect from './components/KakaoRedirect';
 
-// 인증 상태를 체크하는 래퍼 컴포넌트
+const ProtectedRoute = ({ children }) => {
+  const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+  const location = useLocation();
+  
+  if (!loggedInUser) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
+  }
+  
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+  
+  if (loggedInUser) {
+    return <Navigate to="/home" replace />;
+  }
+  
+  return children;
+};
+
 const AppWrapper = () => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      if (isInitialized) return;
+    const checkAuth = () => {
+      const rememberedUser = JSON.parse(localStorage.getItem('rememberMe'));
       
-      try {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-        const rememberedUser = JSON.parse(localStorage.getItem('rememberMe'));
-        const currentPath = window.location.hash; // pathname 대신 hash 사용
-
-        if (loggedInUser) {
-          if (currentPath === '#/signin') {
-            navigate('/home');
-          }
-        } else if (rememberedUser) {
-          const users = JSON.parse(localStorage.getItem('users')) || [];
-          const user = users.find((u) => u.email === rememberedUser.email);
-          
-          if (user) {
-            const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-            if (new Date().getTime() - rememberedUser.timestamp < thirtyDays) {
-              localStorage.setItem('loggedInUser', JSON.stringify({
-                email: user.email,
-                username: user.username,
-                apiKey: user.apiKey,
-                wishlist: user.wishlist || []
-              }));
-              if (currentPath === '#/signin') {
-                navigate('/home');
-              }
-            } else {
-              localStorage.removeItem('rememberMe');
-              navigate('/signin');
-            }
-          } else {
-            localStorage.removeItem('rememberMe');
-            navigate('/signin');
-          }
+      if (rememberedUser) {
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const user = users.find((u) => u.email === rememberedUser.email);
+        
+        if (user && new Date().getTime() - rememberedUser.timestamp < 30 * 24 * 60 * 60 * 1000) {
+          localStorage.setItem('loggedInUser', JSON.stringify({
+            email: user.email,
+            username: user.username,
+            provider: user.provider,
+            wishlist: user.wishlist || [],
+            apiKey: process.env.REACT_APP_TMDB_API_KEY
+          }));
         } else {
-          navigate('/signin');
+          localStorage.removeItem('rememberMe');
         }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        navigate('/signin');
-      } finally {
-        setIsLoading(false);
-        setIsInitialized(true);
       }
+      
+      setIsLoading(false);
     };
 
-    initializeAuth();
-  }, [navigate, isInitialized]);
+    checkAuth();
+  }, []);
 
   if (isLoading) {
     return <div>로딩중...</div>;
@@ -78,54 +70,61 @@ const AppWrapper = () => {
       <Header />
       <ScrollToTop />
       <Routes>
+        <Route 
+          path="/signin" 
+          element={
+            <PublicRoute>
+              <SignIn />
+            </PublicRoute>
+          } 
+        />
+        <Route path="/redirect" element={<KakaoRedirect />} />
         <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route
-          path="/home"
+        <Route 
+          path="/home" 
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Home />
-            </PrivateRoute>
-          }
+            </ProtectedRoute>
+          } 
         />
-        <Route
-          path="/popular"
+        <Route 
+          path="/popular" 
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Popular />
-            </PrivateRoute>
-          }
+            </ProtectedRoute>
+          } 
         />
-        <Route
-          path="/search"
+        <Route 
+          path="/search" 
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Search />
-            </PrivateRoute>
-          }
+            </ProtectedRoute>
+          } 
         />
-        <Route
-          path="/wishlist"
+        <Route 
+          path="/wishlist" 
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Wishlist />
-            </PrivateRoute>
-          }
+            </ProtectedRoute>
+          } 
         />
-        <Route
-          path="/movie/:id"
+        <Route 
+          path="/movie/:id" 
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <MovieDetails />
-            </PrivateRoute>
-          }
+            </ProtectedRoute>
+          } 
         />
       </Routes>
     </>
   );
 };
 
-// 메인 App 컴포넌트
 const App = () => {
   return (
     <Router>

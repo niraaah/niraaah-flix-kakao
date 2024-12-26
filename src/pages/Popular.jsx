@@ -144,9 +144,9 @@ const Popular = () => {
     <div className="popular">
       <h1>🏆 지금 뜨는 컨텐츠</h1>
       <div className="movie-grid">
-        {popular.map((movie) => (
+        {popular.map((movie, index) => (
           <MovieCard
-            key={`${movie.id}-${wishlist.some((item) => item.id === movie.id)}`}
+            key={`${movie.id}-${index}`}
             movie={movie}
             isWishlisted={wishlist.some((item) => item.id === movie.id)}
             onWishlistToggle={handleWishlistToggle}
