@@ -11,7 +11,7 @@ const KakaoRedirect = () => {
         
         if (loggedInUser) {
           console.log('User already logged in, redirecting to home');
-          window.location.href = 'https://niraaah.github.io/niraaah-flix-kakao/#/home';
+          navigate('/home');
           return;
         }
 
@@ -41,16 +41,16 @@ const KakaoRedirect = () => {
           timestamp: new Date().getTime()
         }));
 
-        // 홈으로 리다이렉트
-        window.location.href = 'https://niraaah.github.io/niraaah-flix-kakao/#/home';
+        // navigate를 사용하여 홈으로 리다이렉트
+        navigate('/home');
       } catch (error) {
         console.error('Kakao redirect error:', error);
-        window.location.href = 'https://niraaah.github.io/niraaah-flix-kakao/#/signin';
+        navigate('/signin');
       }
     };
 
     processKakaoLogin();
-  }, []);
+  }, [navigate]);
 
   return <div>카카오 로그인 처리 중...</div>;
 };
