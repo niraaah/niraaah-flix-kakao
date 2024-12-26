@@ -81,7 +81,10 @@ const SignIn = () => {
         timestamp: new Date().getTime()
       }));
 
-      window.location.href = '/niraaah-flix-kakao/#/home';
+      setTimeout(() => {
+        window.location.href = '/niraaah-flix-kakao/#/home';
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       handleKakaoError('카카오 로그인 처리 중 오류가 발생했습니다');
     }
@@ -121,7 +124,11 @@ const SignIn = () => {
     }
 
     setToast({ message: '로그인 성공!', type: 'success' });
-    window.location.href = '/niraaah-flix-kakao/#/home';
+    
+    setTimeout(() => {
+      window.location.href = '/niraaah-flix-kakao/#/home';
+      window.location.reload();
+    }, 1000);
   };
 
   const handleSignUp = () => {
@@ -188,7 +195,11 @@ const SignIn = () => {
     }));
 
     setToast({ message: '회원가입 성공!', type: 'success' });
-    window.location.href = '/niraaah-flix-kakao/#/home';
+    
+    setTimeout(() => {
+      window.location.href = '/niraaah-flix-kakao/#/home';
+      window.location.reload();
+    }, 1000);
   };
 
   const handleCardSwitch = () => {
