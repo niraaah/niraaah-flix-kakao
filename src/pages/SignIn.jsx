@@ -1,4 +1,22 @@
+    );
+
+    if (!user) {
+      setErrors({ email: '이메일 또는 비밀번호가 일치하지 않습니다.' });
+      return;
+    }
+
+    localStorage.setItem('loggedInUser', JSON.stringify({
+      email: user.email,
+      username: user.username,
+      apiKey: user.apiKey,
+      wishlist: user.wishlist || []
 import React, { useState, useEffect } from 'react';
+    }));
+
+    if (formData.rememberMe) {
+      localStorage.setItem('rememberMe', JSON.stringify({
+        email: user.email,
+        timestamp: new Date().getTime()
 import { useNavigate } from 'react-router-dom';
 import Toast from '../components/Toast';
 import ReactMarkdown from 'react-markdown';
@@ -98,13 +116,148 @@ const SignIn = () => {
   };
 
   const handleSignIn = () => {
-    // ... 기존 로그인 검증 로직 ...
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(
+      (u) => u.email === formData.email && u.password === formData.password
+      }));
+    }
 
+    setToast({ message: '로그인 성공!', type: 'success' });
     navigate('/home');
   };
 
   const handleSignUp = () => {
-    // ... 기존 회원가입 로직 ...
+    // 입력 유효성 검사
+    );
+
+    if (!user) {
+      setErrors({ email: '이메일 또는 비밀번호가 일치하지 않습니다.' });
+    const newErrors = {};
+    
+    if (!formData.username.trim()) {
+      newErrors.username = '사용자 이름을 입력해주세요.';
+      return;
+    }
+
+    localStorage.setItem('loggedInUser', JSON.stringify({
+      email: user.email,
+      username: user.username,
+      apiKey: user.apiKey,
+      wishlist: user.wishlist || []
+    }));
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = '이메일을 입력해주세요.';
+
+    if (formData.rememberMe) {
+      localStorage.setItem('rememberMe', JSON.stringify({
+        email: user.email,
+        timestamp: new Date().getTime()
+      }));
+    }
+
+    setToast({ message: '로그인 성공!', type: 'success' });
+    navigate('/home');
+  };
+
+  const handleSignUp = () => {
+    // 입력 유효성 검사
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = '유효한 이메일 주소를 입력해주세요.';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = '비밀번호를 입력해주세요.';
+    } else if (formData.password.length < 6) {
+    const newErrors = {};
+    
+    if (!formData.username.trim()) {
+      newErrors.username = '사용자 이름을 입력해주세요.';
+      newErrors.password = '비밀번호는 최소 6자 이상이어야 합니다.';
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = '이메일을 입력해주세요.';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+    }
+    
+    if (!formData.apiKey.trim()) {
+      newErrors.apiKey = 'API 키를 입력해주세요.';
+    }
+    
+    if (!formData.agreeTerms) {
+      newErrors.agreeTerms = '이용약관에 동의해주세요.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      newErrors.email = '유효한 이메일 주소를 입력해주세요.';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = '비밀번호를 입력해주세요.';
+      setErrors(newErrors);
+      return;
+    }
+
+    // 기존 사용자 확인
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    } else if (formData.password.length < 6) {
+      newErrors.password = '비밀번호는 최소 6자 이상이어야 합니다.';
+    }
+    
+    if (users.some((user) => user.email === formData.email)) {
+      setErrors({ email: '이미 등록된 이메일입니다.' });
+      return;
+    }
+
+    // 새 사용자 추가
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+    }
+    
+    if (!formData.apiKey.trim()) {
+    const newUser = {
+      email: formData.email,
+      password: formData.password,
+      username: formData.username,
+      apiKey: formData.apiKey,
+      newErrors.apiKey = 'API 키를 입력해주세요.';
+    }
+    
+    if (!formData.agreeTerms) {
+      newErrors.agreeTerms = '이용약관에 동의해주세요.';
+      wishlist: []
+    };
+
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // 자동 로그인
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // 기존 사용자 확인
+    localStorage.setItem('loggedInUser', JSON.stringify({
+      email: newUser.email,
+      username: newUser.username,
+      apiKey: newUser.apiKey,
+      wishlist: []
+    }));
+
+    setToast({ message: '회원가입 성공!', type: 'success' });
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    if (users.some((user) => user.email === formData.email)) {
+      setErrors({ email: '이미 등록된 이메일입니다.' });
+    navigate('/home');
   };
 
   const handleCardSwitch = () => {
@@ -113,6 +266,14 @@ const SignIn = () => {
   };
 
   const handleCloseModal = () => {
+      return;
+    }
+
+    // 새 사용자 추가
+    const newUser = {
+      email: formData.email,
+      password: formData.password,
+      username: formData.username,
     setIsClosing(true);
     setTimeout(() => {
       setShowTermsModal(false);
@@ -150,6 +311,12 @@ const SignIn = () => {
             <input
               type="password"
               name="password"
+      apiKey: formData.apiKey,
+      wishlist: []
+    };
+
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
               value={formData.password}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
