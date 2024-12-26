@@ -83,7 +83,7 @@ const SignIn = () => {
         timestamp: new Date().getTime()
       }));
 
-      navigate('/home');
+      navigate('/home', { state: { apiKey: user.apiKey } });
     } catch (error) {
       handleKakaoError('카카오 로그인 처리 중 오류가 발생했습니다');
     }
@@ -123,7 +123,7 @@ const SignIn = () => {
     }
 
     setToast({ message: '로그인 성공!', type: 'success' });
-    navigate('/home');
+    navigate('/home', { state: { apiKey: user.apiKey } });
   };
 
   const handleSignUp = () => {
@@ -182,7 +182,6 @@ const SignIn = () => {
     users.push(newUser);
     localStorage.setItem('users', JSON.stringify(users));
     
-    // 자동 로그인
     localStorage.setItem('loggedInUser', JSON.stringify({
       email: newUser.email,
       username: newUser.username,
@@ -191,7 +190,7 @@ const SignIn = () => {
     }));
 
     setToast({ message: '회원가입 성공!', type: 'success' });
-    navigate('/home');
+    navigate('/home', { state: { apiKey: newUser.apiKey } });
   };
 
   const handleCardSwitch = () => {
@@ -231,7 +230,7 @@ const SignIn = () => {
               value={formData.email}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="이��일"
+              placeholder="이메일"
             />
             {errors.email && <div className="error">{errors.email}</div>}
             <input

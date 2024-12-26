@@ -45,6 +45,31 @@ const Home = () => {
       const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
       loggedInUser.apiKey = location.state.apiKey;
       localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+      
+      // 새로운 apiKey로 즉시 데이터 로드
+      const fetchInitialData = async () => {
+        try {
+          setIsLoading(true);
+          const popularData = await TMDbAPI.getPopularMovies(location.state.apiKey);
+          setPopularMovies(popularData.results.slice(0, 10));
+          setBannerMovie(
+            popularData.results[Math.floor(Math.random() * popularData.results.length)]
+          );
+
+          const genreData = await TMDbAPI.getGenres(location.state.apiKey);
+          setGenres(genreData.genres);
+          
+          // 처음 5개 장르만 로드
+          const initialGenres = genreData.genres.slice(0, 5);
+          await loadNextGenres(initialGenres);
+        } catch (error) {
+          console.error('Error fetching initial data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchInitialData();
     }
   }, [location.state]);
 
