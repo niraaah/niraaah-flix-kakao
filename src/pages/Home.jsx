@@ -37,7 +37,6 @@ const Home = () => {
 
   useEffect(() => {
     const initializeData = async () => {
-      // location.state에서 새 apiKey를 받았거나, localStorage에서 기존 apiKey가 있는 경우
       const newApiKey = location.state?.apiKey;
       const storedUser = JSON.parse(localStorage.getItem('loggedInUser'));
       const currentApiKey = newApiKey || storedUser?.apiKey;
@@ -47,10 +46,8 @@ const Home = () => {
         return;
       }
 
-      // apiKey 상태 업데이트
       setApiKey(currentApiKey);
 
-      // 새로운 apiKey가 location.state를 통해 전달된 경우 localStorage 업데이트
       if (newApiKey) {
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
         loggedInUser.apiKey = newApiKey;
@@ -60,20 +57,17 @@ const Home = () => {
       try {
         setIsLoading(true);
         
-        // 동시에 여러 API 요청 실행
         const [popularData, genreData] = await Promise.all([
           TMDbAPI.getPopularMovies(currentApiKey),
           TMDbAPI.getGenres(currentApiKey)
         ]);
 
-        // 데이터 설정
         setPopularMovies(popularData.results.slice(0, 10));
         setBannerMovie(popularData.results[Math.floor(Math.random() * popularData.results.length)]);
         setGenres(genreData.genres);
 
-        // 초기 장르 영화 로드
         const initialGenres = genreData.genres.slice(0, 5);
-        await loadNextGenres(initialGenres);
+        await loadNextGenres(initialGenres, currentApiKey);
 
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -83,7 +77,7 @@ const Home = () => {
     };
 
     initializeData();
-  }, [location.state]); // location.state만 의존성으로 설정
+  }, [location.state]);
 
   // 찜 목록 로드 함수
   const loadWishlist = () => {
@@ -95,30 +89,32 @@ const Home = () => {
     loadWishlist(); // 초기 로드 시 찜 목록 가져오기
   }, []);
 
-  const loadNextGenres = async (nextGenres) => {
-    if (isLoading) return;
+  const loadNextGenres = async (nextGenres, currentApiKey = apiKey) => {
+    if (isLoading || !currentApiKey) return;
     setIsLoading(true);
     
     try {
       const newGenreMovies = [];
-      // 현재 로드된 모든 장르 ID를 Set으로 관리
       const loadedGenreIds = new Set(genreMovies.map(genre => genre.genreId));
       
-      // 아직 로드되지 않은 ���르만 필터링
       const uniqueGenres = nextGenres.filter(genre => !loadedGenreIds.has(genre.id));
       
-      for (const genre of uniqueGenres) {
-        const movies = await TMDbAPI.getMoviesByGenre(apiKey, genre.id);
+      const genreRequests = uniqueGenres.map(genre => 
+        TMDbAPI.getMoviesByGenre(currentApiKey, genre.id)
+      );
+
+      const genreResults = await Promise.all(genreRequests);
+
+      uniqueGenres.forEach((genre, index) => {
         newGenreMovies.push({ 
           genreName: genre.name, 
           genreId: genre.id,
-          movies: movies.results.slice(0, 10)
+          movies: genreResults[index].results.slice(0, 10)
         });
-      }
+      });
       
       if (newGenreMovies.length > 0) {
         setGenreMovies(prev => {
-          // 다시 한번 중복 체크
           const existingIds = new Set(prev.map(g => g.genreId));
           const uniqueNewGenres = newGenreMovies.filter(g => !existingIds.has(g.genreId));
           return [...prev, ...uniqueNewGenres];
@@ -143,13 +139,11 @@ const Home = () => {
       document.documentElement.offsetHeight - 200 &&
       !isLoading
     ) {
-      // 이미 로드된 모든 장르 ID를 Set으로 관리
       const loadedIds = new Set([
         ...genreMovies.map(genre => genre.genreId),
         ...loadedGenres.map(genre => genre.id)
       ]);
       
-      // 아직 로드되지 않은 장르만 필터링
       const remainingGenres = genres.filter(genre => !loadedIds.has(genre.id));
 
       if (remainingGenres.length > 0) {
