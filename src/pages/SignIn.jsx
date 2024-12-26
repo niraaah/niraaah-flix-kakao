@@ -83,7 +83,7 @@ const SignIn = () => {
         timestamp: new Date().getTime()
       }));
 
-      window.location.href = '/niraaah-flix-kakao/#/home';
+      navigate('/home');
     } catch (error) {
       handleKakaoError('카카오 로그인 처리 중 오류가 발생했습니다');
     }
@@ -100,8 +100,7 @@ const SignIn = () => {
   const handleSignIn = () => {
     // ... 기존 로그인 검증 로직 ...
 
-    // 로그인 성공 시 리다이렉션 부분 수정
-    window.location.href = '/niraaah-flix-kakao/#/home';
+    navigate('/home');
   };
 
   const handleSignUp = () => {
