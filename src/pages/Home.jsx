@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import TMDbAPI from '../services/URL.ts';
 import MovieSlider from '../components/MovieSlider';
 import MovieModal from '../components/MovieModal';
@@ -7,6 +7,7 @@ import '../styles/Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [bannerMovie, setBannerMovie] = useState(null); // 메인 배너 영화
   const [popularMovies, setPopularMovies] = useState([]); // 인기 영화
   const [genreMovies, setGenreMovies] = useState([]); // 로드된 장르별 영화
@@ -21,7 +22,29 @@ const Home = () => {
     return loggedInUser?.apiKey || null;
   });
 
-  // 찜 목��� 로드 함수
+  // localStorage 변경 감지를 위한 이벤트 리스너 추가
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+      setApiKey(loggedInUser?.apiKey || null);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // 컴포넌트 마운트 시에도 한번 체크
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.apiKey) {
+      setApiKey(location.state.apiKey);
+    }
+  }, [location]);
+
+  // 찜 목록 로드 함수
   const loadWishlist = () => {
     const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
     setWishlist(storedWishlist);
