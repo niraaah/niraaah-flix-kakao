@@ -41,8 +41,12 @@ const Home = () => {
   useEffect(() => {
     if (location.state?.apiKey) {
       setApiKey(location.state.apiKey);
+      // localStorage에도 업데이트
+      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
+      loggedInUser.apiKey = location.state.apiKey;
+      localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
     }
-  }, [location]);
+  }, [location.state]);
 
   // 찜 목록 로드 함수
   const loadWishlist = () => {
@@ -55,14 +59,22 @@ const Home = () => {
   }, []);
   
   useEffect(() => {
-    if (!apiKey) {
-      navigate('/signin');
-    }
-  }, [apiKey, navigate]);
+    const checkAuth = () => {
+      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+      if (!loggedInUser || !apiKey) {
+        window.location.href = '/niraaah-flix-kakao/#/signin';
+      }
+    };
+
+    checkAuth();
+  }, [apiKey]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      if (!apiKey) return;
+      
       try {
+        setIsLoading(true);
         const popularData = await TMDbAPI.getPopularMovies(apiKey);
         setPopularMovies(popularData.results.slice(0, 10));
         setBannerMovie(
@@ -77,13 +89,13 @@ const Home = () => {
         await loadNextGenres(initialGenres);
       } catch (error) {
         console.error('Error fetching initial data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (apiKey) {
-      fetchInitialData();
-    }
-  }, [apiKey]);
+    fetchInitialData();
+  }, [apiKey]); // apiKey가 변경될 때마다 실행
 
   const loadNextGenres = async (nextGenres) => {
     if (isLoading) return;
@@ -94,7 +106,7 @@ const Home = () => {
       // 현재 로드된 모든 장르 ID를 Set으로 관리
       const loadedGenreIds = new Set(genreMovies.map(genre => genre.genreId));
       
-      // 아직 로드되지 않은 장르만 필터링
+      // 아직 로드되지 않은 ���르만 필터링
       const uniqueGenres = nextGenres.filter(genre => !loadedGenreIds.has(genre.id));
       
       for (const genre of uniqueGenres) {

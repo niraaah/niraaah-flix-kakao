@@ -83,9 +83,7 @@ const SignIn = () => {
         timestamp: new Date().getTime()
       }));
 
-      setTimeout(() => {
-        navigate('/', { state: { apiKey: user.apiKey } });
-      }, 2000);
+      window.location.href = '/';
     } catch (error) {
       handleKakaoError('카카오 로그인 처리 중 오류가 발생했습니다');
     }
@@ -135,7 +133,7 @@ const SignIn = () => {
           <div className="card front">
             <h2>환영합니다!</h2>
             <br />
-            <p>본 서비스는 편리하��� 효율적인 이용을 위해</p>
+            <p>본 서비��는 편리하��� 효율적인 이용을 위해</p>
             <p>개인 TMDB API로 영화 데이터를 불러옵니다.</p>
             <br />
             <input
