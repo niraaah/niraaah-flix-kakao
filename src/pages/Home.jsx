@@ -30,48 +30,60 @@ const Home = () => {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    // 컴포넌트 마운트 시에도 한번 체크
-    handleStorageChange();
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
   useEffect(() => {
-    if (location.state?.apiKey) {
-      setApiKey(location.state.apiKey);
-      // localStorage에도 업데이트
-      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
-      loggedInUser.apiKey = location.state.apiKey;
-      localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
-      
-      // 새로운 apiKey로 즉시 데이터 로드
-      const fetchInitialData = async () => {
-        try {
-          setIsLoading(true);
-          const popularData = await TMDbAPI.getPopularMovies(location.state.apiKey);
-          setPopularMovies(popularData.results.slice(0, 10));
-          setBannerMovie(
-            popularData.results[Math.floor(Math.random() * popularData.results.length)]
-          );
+    const initializeData = async () => {
+      // location.state에서 새 apiKey를 받았거나, localStorage에서 기존 apiKey가 있는 경우
+      const newApiKey = location.state?.apiKey;
+      const storedUser = JSON.parse(localStorage.getItem('loggedInUser'));
+      const currentApiKey = newApiKey || storedUser?.apiKey;
 
-          const genreData = await TMDbAPI.getGenres(location.state.apiKey);
-          setGenres(genreData.genres);
-          
-          // 처음 5개 장르만 로드
-          const initialGenres = genreData.genres.slice(0, 5);
-          await loadNextGenres(initialGenres);
-        } catch (error) {
-          console.error('Error fetching initial data:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
+      if (!currentApiKey) {
+        window.location.href = '/niraaah-flix-kakao/#/signin';
+        return;
+      }
 
-      fetchInitialData();
-    }
-  }, [location.state]);
+      // apiKey 상태 업데이트
+      setApiKey(currentApiKey);
+
+      // 새로운 apiKey가 location.state를 통해 전달된 경우 localStorage 업데이트
+      if (newApiKey) {
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || {};
+        loggedInUser.apiKey = newApiKey;
+        localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // 동시에 여러 API 요청 실행
+        const [popularData, genreData] = await Promise.all([
+          TMDbAPI.getPopularMovies(currentApiKey),
+          TMDbAPI.getGenres(currentApiKey)
+        ]);
+
+        // 데이터 설정
+        setPopularMovies(popularData.results.slice(0, 10));
+        setBannerMovie(popularData.results[Math.floor(Math.random() * popularData.results.length)]);
+        setGenres(genreData.genres);
+
+        // 초기 장르 영화 로드
+        const initialGenres = genreData.genres.slice(0, 5);
+        await loadNextGenres(initialGenres);
+
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+  }, [location.state]); // location.state만 의존성으로 설정
 
   // 찜 목록 로드 함수
   const loadWishlist = () => {
@@ -82,45 +94,6 @@ const Home = () => {
   useEffect(() => {
     loadWishlist(); // 초기 로드 시 찜 목록 가져오기
   }, []);
-  
-  useEffect(() => {
-    const checkAuth = () => {
-      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-      if (!loggedInUser || !apiKey) {
-        window.location.href = '/niraaah-flix-kakao/#/signin';
-      }
-    };
-
-    checkAuth();
-  }, [apiKey]);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      if (!apiKey) return;
-      
-      try {
-        setIsLoading(true);
-        const popularData = await TMDbAPI.getPopularMovies(apiKey);
-        setPopularMovies(popularData.results.slice(0, 10));
-        setBannerMovie(
-          popularData.results[Math.floor(Math.random() * popularData.results.length)]
-        );
-
-        const genreData = await TMDbAPI.getGenres(apiKey);
-        setGenres(genreData.genres);
-        
-        // 처음 5개 장르만 로드
-        const initialGenres = genreData.genres.slice(0, 5);
-        await loadNextGenres(initialGenres);
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchInitialData();
-  }, [apiKey]); // apiKey가 변경될 때마다 실행
 
   const loadNextGenres = async (nextGenres) => {
     if (isLoading) return;
