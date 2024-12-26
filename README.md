@@ -1,6 +1,8 @@
 # 영화 검색 및 관리 웹 애플리케이션
 
 본 프로젝트는 TMDB API를 활용하여 영화 검색, 관리, 시청 기록 등을 제공하는 웹 애플리케이션입니다. 사용자는 개인 TMDB API 키를 통해 영화 데이터를 검색하고, 찜 목록 관리 및 무한 스크롤링을 활용한 효율적인 탐색을 경험할 수 있습니다.
+페이지 주소: https://niraaah.github.io/niraaah-flix-kakao/
+
 
 ---
 
@@ -52,7 +54,7 @@ npm install
 npm start
 ```
 
-앱은 기본적으로 `http://localhost:3000`에서 실행됩니다. 
+앱은 기본적으로 `http://localhost:3000`에서 실행됩니다.
 
 ### 4️⃣ GitHub Pages 배포
 
