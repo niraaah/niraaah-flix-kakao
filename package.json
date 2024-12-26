@@ -5,8 +5,8 @@
   "description": "A Netflix-inspired web app built using React.js.",
   "main": "index.js",
   "scripts": {
-    "start": "LANG=ko_KR.UTF-8 react-scripts start",
-    "build": "cp .env-prod .env && react-scripts build",
+    "start": "LANG=ko_KR.UTF-8 && cp .env-dev .env && react-scripts start",
+    "build": "LANG=ko_KR.UTF-8 && cp .env-prod .env && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
